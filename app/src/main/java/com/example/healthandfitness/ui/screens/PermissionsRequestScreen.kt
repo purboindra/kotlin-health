@@ -63,19 +63,25 @@ fun PermissionsRequestScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "This app needs Health Connect permissions to track your fitness data.",
-            style = MaterialTheme.typography.bodyMedium,
+        if (permissionsGranted) Text(
+            "Welcome to Health and Fitness App!",
+            style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            coroutineScope.launch {
-                healthConnectManager.openSettingsHealtConnect(context)
-            }
-        }) {
-            Text("Grant Permissions")
+        ) else Column {
+            Text(
+                text = "This app needs Health Connect permissions to track your fitness data.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                coroutineScope.launch {
+                    healthConnectManager.openSettingsHealtConnect(context)
+                }
+            }) {
+                Text("Grant Permissions")
 
+            }
         }
     }
 }

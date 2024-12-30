@@ -23,13 +23,12 @@ import java.time.Instant
 import java.time.ZonedDateTime
 import kotlin.random.Random
 
-val PERMISSIONS =
-    setOf(
-        HealthPermission.getReadPermission(HeartRateRecord::class),
-        HealthPermission.getWritePermission(HeartRateRecord::class),
-        HealthPermission.getReadPermission(StepsRecord::class),
-        HealthPermission.getWritePermission(StepsRecord::class)
-    )
+val PERMISSIONS = setOf(
+    HealthPermission.getReadPermission(HeartRateRecord::class),
+    HealthPermission.getWritePermission(HeartRateRecord::class),
+    HealthPermission.getReadPermission(StepsRecord::class),
+    HealthPermission.getWritePermission(StepsRecord::class)
+)
 
 const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
 
@@ -83,8 +82,7 @@ class HealthConnectManager(private val context: Context) {
         while (time.isBefore(sessionEndTime)) {
             samples.add(
                 HeartRateRecord.Sample(
-                    time = time.toInstant(),
-                    beatsPerMinute = (80 + Random.nextInt(80)).toLong()
+                    time = time.toInstant(), beatsPerMinute = (80 + Random.nextInt(80)).toLong()
                 )
             )
             time = time.plusSeconds(30)
@@ -108,15 +106,13 @@ class HealthConnectManager(private val context: Context) {
                     endZoneOffset = end.offset,
                     exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_RUNNING,
                     title = "My Run #${Random.nextInt(0, 60)}"
-                ),
-                StepsRecord(
+                ), StepsRecord(
                     startTime = start.toInstant(),
                     startZoneOffset = start.offset,
                     endTime = end.toInstant(),
                     endZoneOffset = end.offset,
                     count = (1000 + 1000 * Random.nextInt(3)).toLong()
-                ),
-                TotalCaloriesBurnedRecord(
+                ), TotalCaloriesBurnedRecord(
                     startTime = start.toInstant(),
                     startZoneOffset = start.offset,
                     endTime = end.toInstant(),
@@ -128,10 +124,9 @@ class HealthConnectManager(private val context: Context) {
     }
 
     suspend fun readStepsByTimeRange(
-        startTime: Instant,
-        endTime: Instant
-    ) {
-        try {
+        startTime: Instant, endTime: Instant
+    ): List<StepsRecord> {
+        return try {
             val response = healthConnectClient.readRecords(
                 ReadRecordsRequest(
                     StepsRecord::class,
@@ -143,9 +138,11 @@ class HealthConnectManager(private val context: Context) {
                 println("stepRecord: $stepRecord")
             }
 
+            response.records
+
         } catch (e: Exception) {
             e.printStackTrace()
-
+            emptyList()
         }
     }
 
@@ -153,7 +150,5 @@ class HealthConnectManager(private val context: Context) {
 
 
 enum class HealthConnectAvailability {
-    INSTALLED,
-    NOT_INSTALLED,
-    NOT_SUPPORTED
+    INSTALLED, NOT_INSTALLED, NOT_SUPPORTED
 }
