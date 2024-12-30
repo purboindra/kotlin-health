@@ -40,14 +40,14 @@ fun PermissionsRequestScreen(
     val context = LocalContext.current
     val healthConnectManager = remember { HealthConnectManager(context) }
     val coroutineScope = rememberCoroutineScope()
-    
+
     val permissionsGranted by permissionsViewModel.permissionsGranted.collectAsState()
-    
+
     val permissionsLauncher =
         rememberLauncherForActivityResult(permissionsViewModel.permissionsLauncher(context)) {
             permissionsViewModel.checkPermissions(context)
         }
-    
+
     LaunchedEffect(Unit) {
         if (permissionsGranted) {
             // TODO
@@ -55,7 +55,7 @@ fun PermissionsRequestScreen(
             permissionsLauncher.launch(PERMISSIONS)
         }
     }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -71,37 +71,11 @@ fun PermissionsRequestScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
             coroutineScope.launch {
-                val result = healthConnectManager.hasAllPermissions()
-                if (result) {
-                    permissionsViewModel.setPermissionsGranted(result)
-                } else {
-//                    onPermissionsDenied()
-                    permissionsLauncher.launch(PERMISSIONS)
-                }
+                healthConnectManager.openSettingsHealtConnect(context)
             }
         }) {
             Text("Grant Permissions")
-        }
-        if (!permissionsGranted) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                val intent =
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                        // HCM is an import alias for HealthConnectManager from the Health Connect client
-//                            Intent(HCM.ACTION_MANAGE_HEALTH_PERMISSIONS)
-//                                .putExtra(
-//                                    Intent.EXTRA_PACKAGE_NAME,
-//                                    context.packageName
-//                                )
-                    } else {
-                        Intent(
-                            HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS
-                        )
-                    }
-//                startActivity(context, intent, null)
-            }) {
-                Text("Give permissions to Health Connect")
-            }
+
         }
     }
 }

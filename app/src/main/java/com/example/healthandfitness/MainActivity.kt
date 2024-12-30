@@ -32,17 +32,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        
+
         val providerPackageName = "com.google.android.apps.healthdata"
         val packageName = this.packageName
-        
-        fun openAppSettings() {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", packageName, null)
-            }
-            startActivity(intent)
-        }
-        
+
+        val healthConnectManager = (application as MyApp).healthConnectManager
+
         fun showPermissionExplanation(onOpen: () -> Unit) {
             AlertDialog.Builder(this)
                 .setTitle("Permissions Required")
@@ -53,13 +48,7 @@ class MainActivity : ComponentActivity() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
-        
-        
-        val availabilityStatus = HealthConnectClient.getSdkStatus(this, providerPackageName)
-        if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE) {
-            return // early return as there is no viable integration
-        }
-        
+
         fun startActivityHealthConnect() {
             val uriString =
                 "market://details?id=$providerPackageName&url=healthconnect%3A%2F%2Fonboarding"
@@ -72,18 +61,25 @@ class MainActivity : ComponentActivity() {
                 }
             )
         }
-        
+
+        val availabilityStatus = HealthConnectClient.getSdkStatus(this, providerPackageName)
+
+        // If user device not support Health Connect
+        if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE) {
+            return
+        }
+
+        // If user device support Health Connect but not installed
         if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED) {
             startActivityHealthConnect()
             return
         }
-        
+
         val healthConnectClient = HealthConnectClient.getOrCreate(this)
-        
+
         val requestPermissionActivityContract =
             PermissionController.createRequestPermissionResultContract()
-        
-        
+
         val requestPermissions =
             registerForActivityResult(requestPermissionActivityContract) { granted ->
                 println("granted: $granted")
@@ -94,12 +90,11 @@ class MainActivity : ComponentActivity() {
                     // Lack of required permissions
                     println("Lack of required permissions")
                     showPermissionExplanation {
-//                    openAppSettings()
                         startActivityHealthConnect()
                     }
                 }
             }
-        
+
         suspend fun checkPermissionsAndRun(healthConnectClient: HealthConnectClient) {
             val granted = healthConnectClient.permissionController.getGrantedPermissions()
             println("granted: $granted")
@@ -111,19 +106,14 @@ class MainActivity : ComponentActivity() {
                 requestPermissions.launch(PERMISSIONS)
             }
         }
-        
+
         lifecycleScope.launch {
             checkPermissionsAndRun(healthConnectClient)
         }
-        
+
         setContent {
             HealthAndFitnessTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainAppContent()
-                }
+                HealthAndFitnessApp(healthConnectManager)
             }
         }
     }

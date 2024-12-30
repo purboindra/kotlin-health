@@ -13,8 +13,8 @@ fun AppNavHost(
     navHostController: NavHostController,
 ) {
     val navGraph = remember(navHostController) {
-        navHostController.createGraph(startDestination = PermissionRationale) {
-            composable<PermissionRationale> {
+        navHostController.createGraph(startDestination = PermissionRequest) {
+            composable<PermissionRequest> {
                 PermissionsRequestScreen(navHostController = navHostController)
             }
         }

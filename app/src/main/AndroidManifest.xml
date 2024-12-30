@@ -6,20 +6,24 @@
     <uses-permission android:name="android.permission.health.WRITE_HEART_RATE" />
     <uses-permission android:name="android.permission.health.READ_STEPS" />
     <uses-permission android:name="android.permission.health.WRITE_STEPS" />
+    <uses-permission android:name="android.permission.health.READ_EXERCISE" />
+    <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
+    <uses-permission android:name="android.permission.health.WRITE_TOTAL_CALORIES_BURNED" />
+    <uses-permission android:name="android.permission.health.READ_WEIGHT" />
+    <uses-permission android:name="android.permission.health.WRITE_WEIGHT" />
+    <uses-permission android:name="android.permission.health.READ_EXERCISE_ROUTES" />
+    <uses-permission android:name="android.permission.health.WRITE_EXERCISE_ROUTES" />
 
-    <uses-permission android:name="android.permission.health.READ_MENSTRUATION" />
-    <uses-permission android:name="android.permission.health.WRITE_MENSTRUATION" />
-
-    <uses-permission android:name="android.permission.BODY_SENSORS" />
-    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND" />
 
     <application
+        android:name=".MyApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:name=".MyApp"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.HealthAndFitness"
@@ -34,28 +38,20 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Permission handling for Android 13- -->
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+
+            <!-- Permission handling for Android 14+ -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+
         </activity>
 
-        <!--        <activity-->
-        <!--            android:name=".PermissionsRationaleActivity"-->
-        <!--            android:exported="true">-->
-        <!--            <intent-filter>-->
-        <!--                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />-->
-        <!--            </intent-filter>-->
-        <!--        </activity>-->
-
-        <!-- For versions starting Android 14, create an activity alias to show the rationale
-             of Health Connect permissions once users click the privacy policy link. -->
-        <!--        <activity-alias-->
-        <!--            android:name="ViewPermissionUsageActivity"-->
-        <!--            android:exported="true"-->
-        <!--            android:permission="android.permission.START_VIEW_PERMISSION_USAGE"-->
-        <!--            android:targetActivity=".PermissionsRationaleActivity">-->
-        <!--            <intent-filter>-->
-        <!--                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />-->
-        <!--                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />-->
-        <!--            </intent-filter>-->
-        <!--        </activity-alias>-->
     </application>
 
     <!-- Check if Health Connect is installed -->
