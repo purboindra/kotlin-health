@@ -15,9 +15,12 @@ serialization = "2.1.0"
 serialization-json = "1.8.0-RC"
 workRuntimeKtx = "2.10.0"
 coil = "3.0.4"
+work-version = "2.9.1"
+room_version = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -42,6 +45,9 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization-json" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room_version" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room_version" }
+ksp = { group = "androidx.room", name = "room-compiler", version.ref = "room_version" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

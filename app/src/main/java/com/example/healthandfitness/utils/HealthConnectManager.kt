@@ -3,6 +3,7 @@ package com.example.healthandfitness.utils
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalContext
@@ -19,8 +20,14 @@ import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Energy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 val PERMISSIONS = setOf(
@@ -33,26 +40,26 @@ val PERMISSIONS = setOf(
 const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
 
 class HealthConnectManager(private val context: Context) {
-
+    
     private val healthConnectClient: HealthConnectClient by lazy {
         HealthConnectClient.getOrCreate(context)
     }
-
+    
     var availability = mutableStateOf(HealthConnectAvailability.NOT_SUPPORTED)
         private set
-
+    
     private fun isSupported() = Build.VERSION.SDK_INT >= MIN_SUPPORTED_SDK
-
+    
     init {
         checkAvailability()
     }
-
+    
     fun openSettingsHealtConnect(context: Context) {
         val settingsIntent = Intent()
         settingsIntent.action = HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS
         context.startActivity(settingsIntent)
     }
-
+    
     fun checkAvailability() {
         availability.value = when {
             HealthConnectClient.getSdkStatus(context) == SDK_AVAILABLE -> HealthConnectAvailability.INSTALLED
@@ -60,19 +67,57 @@ class HealthConnectManager(private val context: Context) {
             else -> HealthConnectAvailability.NOT_SUPPORTED
         }
     }
-
+    
     @OptIn(ExperimentalFeatureAvailabilityApi::class)
     fun isFeatureAvailable(feature: Int): Boolean {
         return healthConnectClient.features.getFeatureStatus(feature) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
     }
-
+    
     suspend fun hasAllPermissions(): Boolean =
         healthConnectClient.permissionController.getGrantedPermissions().containsAll(PERMISSIONS)
-
+    
     fun requestPermissionsActivityContext(): ActivityResultContract<Set<String>, Set<String>> {
         return PermissionController.createRequestPermissionResultContract()
     }
-
+    
+    suspend fun writeStepsRecord(steps: Long, startTime: Instant, endTime: Instant) {
+        try {
+            val stepsRecord = StepsRecord(
+                count = steps,
+                startTime = startTime,
+                endTime = endTime,
+                startZoneOffset = ZonedDateTime.now().offset,
+                endZoneOffset = ZonedDateTime.now().offset
+            )
+            
+            healthConnectClient.insertRecords(
+                listOf(
+                    stepsRecord
+                )
+            )
+            
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    
+    suspend fun readingStepsRecordForDay(date: LocalDate): Long {
+        val startTime = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
+        val endTime = startTime.plus(1, ChronoUnit.DAYS)
+        return try {
+            val response = healthConnectClient.readRecords(
+                ReadRecordsRequest(
+                    StepsRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+                )
+            )
+            response.records.sumOf { it.count }
+        } catch (e: Exception) {
+            println("Error reading steps record for day: $e")
+            0
+        }
+    }
+    
     private fun buildHeartRateSeries(
         sessionStartTime: ZonedDateTime,
         sessionEndTime: ZonedDateTime,
@@ -95,7 +140,7 @@ class HealthConnectManager(private val context: Context) {
             samples = samples
         )
     }
-
+    
     suspend fun writeExerciseSession(start: ZonedDateTime, end: ZonedDateTime) {
         healthConnectClient.insertRecords(
             listOf(
@@ -122,7 +167,7 @@ class HealthConnectManager(private val context: Context) {
             ) + buildHeartRateSeries(start, end)
         )
     }
-
+    
     suspend fun readStepsByTimeRange(
         startTime: Instant, endTime: Instant
     ): List<StepsRecord> {
@@ -133,19 +178,26 @@ class HealthConnectManager(private val context: Context) {
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
                 )
             )
-
+            
             for (stepRecord in response.records) {
                 println("stepRecord: $stepRecord")
             }
-
+            
             response.records
-
+            
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
         }
     }
-
+    
+    fun enqueReadStepWorker() {
+        val readRequest =
+            OneTimeWorkRequestBuilder<ReadStepWorker>().setInitialDelay(10, TimeUnit.SECONDS)
+                .build()
+        WorkManager.getInstance(context).enqueue(readRequest)
+    }
+    
 }
 
 

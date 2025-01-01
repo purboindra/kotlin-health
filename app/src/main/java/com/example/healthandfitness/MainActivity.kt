@@ -1,29 +1,22 @@
 package com.example.healthandfitness
 
 import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.healthandfitness.ui.navigation.AppNavHost
 import com.example.healthandfitness.ui.theme.HealthAndFitnessTheme
 import com.example.healthandfitness.utils.HealthConnectManager
@@ -31,8 +24,11 @@ import com.example.healthandfitness.utils.PERMISSIONS
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+const val REQUEST_CODE_ACTIVITY_RECOGNITION = 1001
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -110,6 +106,20 @@ class MainActivity : ComponentActivity() {
                 healthConnectManager.openSettingsHealtConnect(this)
             }
         }
+        
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACTIVITY_RECOGNITION
+            )
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.ACTIVITY_RECOGNITION),
+                REQUEST_CODE_ACTIVITY_RECOGNITION
+            )
+        }
+        
         
         lifecycleScope.launch {
             checkPermissionsAndRun(healthConnectClient)

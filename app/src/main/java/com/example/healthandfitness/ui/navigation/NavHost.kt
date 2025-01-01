@@ -16,6 +16,7 @@ import com.example.healthandfitness.ui.screens.MainScreen
 import com.example.healthandfitness.ui.screens.PermissionsRequestScreen
 import com.example.healthandfitness.ui.screens.PrivacyAndPolicyScreen
 import com.example.healthandfitness.ui.screens.Screen
+import com.example.healthandfitness.ui.screens.StepTrackerScreen
 import com.example.healthandfitness.ui.screens.WelcomeScreen
 import com.example.healthandfitness.utils.HealthConnectManager
 
@@ -45,6 +46,9 @@ fun AppNavHost(
             composable(Screen.MainScreen.route) {
                 MainScreen()
             }
+            composable(Screen.StepTrackerScreen.route) {
+                StepTrackerScreen()
+            }
         }
     }
     NavHost(
@@ -52,6 +56,7 @@ fun AppNavHost(
         graph = navGraph,
         modifier = Modifier
             .fillMaxSize()
-            .safeContentPadding().padding(top = 52.dp)
+            .safeContentPadding()
+            .padding(top = 52.dp)
     )
 }
