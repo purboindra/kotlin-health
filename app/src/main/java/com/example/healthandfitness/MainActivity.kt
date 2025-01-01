@@ -1,6 +1,7 @@
 package com.example.healthandfitness
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -20,9 +21,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.healthandfitness.ui.navigation.AppNavHost
 import com.example.healthandfitness.ui.theme.HealthAndFitnessTheme
+import com.example.healthandfitness.utils.HealthConnectManager
 import com.example.healthandfitness.utils.PERMISSIONS
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -32,12 +36,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
+        
         val providerPackageName = "com.google.android.apps.healthdata"
         val packageName = this.packageName
-
+        
         val healthConnectManager = (application as MyApp).healthConnectManager
-
+        
         fun showPermissionExplanation(onOpen: () -> Unit) {
             AlertDialog.Builder(this)
                 .setTitle("Permissions Required")
@@ -48,7 +52,7 @@ class MainActivity : ComponentActivity() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
-
+        
         fun startActivityHealthConnect() {
             val uriString =
                 "market://details?id=$providerPackageName&url=healthconnect%3A%2F%2Fonboarding"
@@ -61,25 +65,25 @@ class MainActivity : ComponentActivity() {
                 }
             )
         }
-
+        
         val availabilityStatus = HealthConnectClient.getSdkStatus(this, providerPackageName)
-
+        
         // If user device not support Health Connect
         if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE) {
             return
         }
-
+        
         // If user device support Health Connect but not installed
         if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED) {
             startActivityHealthConnect()
             return
         }
-
+        
         val healthConnectClient = HealthConnectClient.getOrCreate(this)
-
+        
         val requestPermissionActivityContract =
             PermissionController.createRequestPermissionResultContract()
-
+        
         val requestPermissions =
             registerForActivityResult(requestPermissionActivityContract) { granted ->
                 println("granted: $granted")
@@ -94,7 +98,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-
+        
         suspend fun checkPermissionsAndRun(healthConnectClient: HealthConnectClient) {
             val granted = healthConnectClient.permissionController.getGrantedPermissions()
             println("granted: $granted")
@@ -103,14 +107,14 @@ class MainActivity : ComponentActivity() {
                 // Permissions already granted; proceed with inserting or reading data
             } else {
                 println("Permissions not granted yet")
-                requestPermissions.launch(PERMISSIONS)
+                healthConnectManager.openSettingsHealtConnect(this)
             }
         }
-
+        
         lifecycleScope.launch {
             checkPermissionsAndRun(healthConnectClient)
         }
-
+        
         setContent {
             HealthAndFitnessTheme {
                 HealthAndFitnessApp(healthConnectManager)
@@ -120,7 +124,6 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainAppContent() {
-    val navController = rememberNavController()
-    AppNavHost(navController)
+fun MainAppContent(healthConnectManager: HealthConnectManager, navController: NavHostController) {
+    AppNavHost(navController, healthConnectManager)
 }

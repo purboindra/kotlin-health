@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,8 +29,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.HealthConnectClient
+import androidx.navigation.compose.rememberNavController
+import com.example.healthandfitness.ui.component.DrawerContent
 import com.example.healthandfitness.utils.HealthConnectManager
 import kotlinx.coroutines.launch
 
@@ -37,65 +42,29 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HealthAndFitnessApp(healthConnectManager: HealthConnectManager) {
-
+    
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val navController = rememberNavController()
     val scope = rememberCoroutineScope()
-
-    val availability by healthConnectManager.availability
-    val activity = LocalContext.current
-
-
+    
     ModalNavigationDrawer(
         drawerContent = {
-            ModalDrawerSheet {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(
-                                onClick = {
-                                    val settingsIntent = Intent()
-                                    settingsIntent.action =
-                                        HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS
-                                    activity.startActivity(settingsIntent)
-                                }
-                            )
-                            .height(48.dp)
-                            .padding(start = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Settings",
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(
-                                onClick = {
-                                  // TODO
-                                }
-                            )
-                            .height(48.dp)
-                            .padding(start = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Run",
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
-                }
-            }
+            DrawerContent(navController, drawerState, scope)
         },
         drawerState = drawerState,
+        modifier = Modifier.fillMaxSize(),
     ) {
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text("Health and Fitness App", style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            "ExerciseMate",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                        )
                     },
                     navigationIcon = {
                         IconButton(
@@ -116,11 +85,10 @@ fun HealthAndFitnessApp(healthConnectManager: HealthConnectManager) {
                         }
                     }
                 )
-
-            }
+            },
         ) {
-            MainAppContent()
+            MainAppContent(healthConnectManager, navController)
         }
     }
-
+    
 }

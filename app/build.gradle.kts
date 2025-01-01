@@ -81,6 +81,10 @@ dependencies {
 
     // Work
     implementation (libs.androidx.work.runtime.ktx)
+    
+    // Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
 }
 
 kapt {
